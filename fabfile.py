@@ -27,6 +27,7 @@ def hello():
     print ("Hello Uganda!")
 
 def deploy(project='all', dest='test', fix_owner=True):
+    print "Fix owner is %s" % fix_owner
     if not dest in ['prod', 'test']:
         abort('must specify a valid dest: prod or test')
     if project != 'all' and project not in PROJECTS \
@@ -44,7 +45,8 @@ def deploy(project='all', dest='test', fix_owner=True):
             run("git pull origin master")
             run("git submodule sync")
             run("git submodule update")
-        if fix_owner:
+
+        if not fix_owner == 'False':
             with cd("%s../" % code_dir):
                 sudo("chown -R www:www %s" % p)
                 sudo("chmod -R ug+rwx %s" % p)
