@@ -1,6 +1,27 @@
 from fabric.api import local, abort, run, cd, settings, sudo
+from fabric.contrib.console import confirm
 
 PROJECTS = ['cvs', 'ureport', 'emis', 'status160']
+STANDARD_REPOS = [
+   'django-eav',
+   'rapidsms',
+   'rapidsms-auth',
+   'rapidsms-contact',
+   'rapidsms-generic',
+   'rapidsms-healthmodels',
+   'rapidsms-httprouter',
+   'rapidsms-polls',
+   'rapidsms-script',
+   'rapidsms-uganda-common',
+   'rapidsms-unregister',
+   'rapidsms-ureport',
+   'rapidsms-xforms',
+]
+
+REPOS_WITH_SRC_NAME = [
+    'rapidsms-httprouter',
+    'rapidsms-xforms'
+]
 
 def hello():
     print ("Hello Uganda!")
@@ -8,7 +29,8 @@ def hello():
 def deploy(project='all', dest='test'):
     if not dest in ['prod', 'test']:
         abort('must specify a valid dest: prod or test')
-    if not (project == 'all' or project in PROJECTS):
+    if project != 'all' and project not in PROJECTS \
+        and not confirm("Project %s not in known projects (%s), proceed anyway?" % (project, PROJECTS)):
         abort('must specify a valid project: all or one of %s' % PROJECTS)
     projects = PROJECTS if project == 'all' else [project]
     for p in projects:
@@ -27,7 +49,8 @@ def deploy(project='all', dest='test'):
             sudo("chmod -R ug+rwx %s" % p)
 
 def copy_db(project='all'):
-    if not (project == 'all' or project in PROJECTS):
+    if project != 'all' and project not in PROJECTS \
+        and not confirm("Project %s not in known projects (%s), proceed anyway?" % (project, PROJECTS)):
         abort('must specify a valid project: all or one of %s' % PROJECTS)
     projects = PROJECTS if project == 'all' else [project]
     for p in projects:
@@ -38,4 +61,16 @@ def copy_db(project='all'):
         sudo("psql %s-test < /tmp/%s.pgsql" % (p, p), user="postgres")
         sudo("rm /tmp/%s.pgsql" % p, user="postgres")
 
-
+def add_all_submodules(project, dev=False):
+        with settings(warn_only=True):
+            if local("test -d %s_project" % project).failed:
+                local("mkdir %s_project" % project)
+        for repo in STANDARD_REPOS:
+            if not repo in REPOS_WITH_SRC_NAME:
+                dest_folder = "%s_project/%s" % (project, repo.replace("-", "_"))
+            else:
+                dest_folder = "%s_project/%s_src" % (project, repo.replace("-", "_"))
+            local("git submodule add git://github.com/unicefuganda/%s %s" % (repo, dest_folder))
+            if dev:
+                with cd(dest_folder):
+                    local("git remote add dev git@github.com:unicefuganda/%s" % repo)
