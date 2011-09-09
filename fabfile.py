@@ -26,4 +26,16 @@ def deploy(project='all', dest='test'):
             sudo("chown -R www:www %s" % p)
             sudo("chmod -R ug+rwx %s" % p)
 
+def copy_db(project='all'):
+    if not (project == 'all' or project in PROJECTS):
+        abort('must specify a valid project: all or one of %s' % PROJECTS)
+    projects = PROJECTS if project == 'all' else [project]
+    for p in projects:
+        sudo("pg_dump %s > /tmp/%s.pgsql" % (p, p), user="postgres")
+        with settings(warn_only=True):
+            sudo("dropdb %s-test" % p, user="postgres")
+        sudo("createdb %s-test" % p, user="postgres")
+        sudo("psql %s-test < /tmp/%s.pgsql" % (p, p), user="postgres")
+        sudo("rm /tmp/%s.pgsql" % p, user="postgres")
+
 
