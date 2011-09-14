@@ -41,10 +41,12 @@ def deploy(project='all', dest='test', fix_owner=True):
                 run("git clone git://github.com/unicefuganda/%s %s" % (p, code_dir))
                 with cd(code_dir):
                     run("git submodule init")
+                    run("git config core.filemode false")
         with cd(code_dir):
             run("git pull origin master")
             run("git submodule sync")
             run("git submodule update")
+            run("git submodule foreach git config core.filemode false")
 
         if not fix_owner == 'False':
             with cd("%s../" % code_dir):
@@ -73,7 +75,9 @@ def add_all_submodules(project, dev=False):
                 dest_folder = "%s_project/%s" % (project, repo.replace("-", "_"))
             else:
                 dest_folder = "%s_project/%s_src" % (project, repo.replace("-", "_"))
-            local("git submodule add git://github.com/unicefuganda/%s %s" % (repo, dest_folder))
-            if dev:
-                with cd(dest_folder):
-                    local("git remote add dev git@github.com:unicefuganda/%s" % repo)
+            with settings(warn_only=True):
+                if local("test -d %s" % dest_folder).failed:
+                    local("git submodule add git://github.com/unicefuganda/%s %s" % (repo, dest_folder))
+                if dev:
+                    with cd(dest_folder):
+                        local("git remote add dev git@github.com:unicefuganda/%s" % repo)
