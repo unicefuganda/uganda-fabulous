@@ -1,4 +1,4 @@
-from fabric.api import local, abort, run, cd, settings, sudo
+from fabric.api import local, abort, run, cd, settings, sudo, env
 from fabric.contrib.console import confirm
 
 PROJECTS = ['cvs', 'ureport', 'emis', 'status160']
@@ -25,6 +25,7 @@ REPOS_WITH_SRC_NAME = [
 
 def hello():
     print ("Hello Uganda!")
+
 
 def deploy(project='all', dest='test', fix_owner=True):
     print "Fix owner is %s" % fix_owner
@@ -53,6 +54,7 @@ def deploy(project='all', dest='test', fix_owner=True):
                 sudo("chown -R www:www %s" % p)
                 sudo("chmod -R ug+rwx %s" % p)
 
+
 def copy_db(project='all'):
     if project != 'all' and project not in PROJECTS \
         and not confirm("Project %s not in known projects (%s), proceed anyway?" % (project, PROJECTS)):
@@ -65,6 +67,23 @@ def copy_db(project='all'):
         sudo("createdb %s-test" % p, user="postgres")
         sudo("psql %s-test < /tmp/%s.pgsql" % (p, p), user="postgres")
         sudo("rm /tmp/%s.pgsql" % p, user="postgres")
+
+
+def pull_db(project='all'):
+    if project != 'all' and project not in PROJECTS \
+        and not confirm("Project %s not in known projects (%s), proceed anyway?" % (project, PROJECTS)):
+        abort('must specify a valid project: all or one of %s' % PROJECTS)
+    projects = PROJECTS if project == 'all' else [project]
+    for p in projects:
+        sudo("pg_dump %s > /tmp/%s.pgsql" % (p, p), user="postgres")
+        with settings(warn_only=True):
+            local("sudo -u postgres dropdb %s" % p)
+        local("sudo -u postgres createdb %s" % p)
+        local("scp %s:/tmp/%s.pgsql /tmp/%s.pgsql" % (env.host_string, p, p))
+        local("sudo -u postgres psql %s < /tmp/%s.pgsql" % (p, p))
+        sudo("rm /tmp/%s.pgsql" % p, user="postgres")
+        local("rm /tmp/%s.pgsql" % p)
+
 
 def add_all_submodules(project, dev=False):
         with settings(warn_only=True):
