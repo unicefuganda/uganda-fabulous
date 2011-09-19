@@ -97,6 +97,6 @@ def add_all_submodules(project, dev=False):
             with settings(warn_only=True):
                 if local("test -d %s" % dest_folder).failed:
                     local("git submodule add git://github.com/unicefuganda/%s %s" % (repo, dest_folder))
-                if dev:
+                if dev == 'True':
                     with cd(dest_folder):
                         local("git remote add dev git@github.com:unicefuganda/%s" % repo)
