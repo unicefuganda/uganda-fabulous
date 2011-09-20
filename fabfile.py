@@ -1,4 +1,4 @@
-from fabric.api import local, abort, run, cd, settings, sudo, env
+from fabric.api import local, abort, run, lcd, cd, settings, sudo, env
 from fabric.contrib.console import confirm
 
 PROJECTS = ['cvs', 'ureport', 'emis', 'status160']
@@ -101,5 +101,6 @@ def add_all_submodules(project, dev=False):
                 if local("test -d %s" % dest_folder).failed:
                     local("git submodule add git://github.com/unicefuganda/%s %s" % (repo, dest_folder))
                 if dev == 'True':
-                    with cd(dest_folder):
-                        local("git remote add dev git@github.com:unicefuganda/%s" % repo)
+                    with settings(warn_only=False):
+                        with lcd(dest_folder):
+                            local("git remote add dev git@github.com:unicefuganda/%s" % repo)
