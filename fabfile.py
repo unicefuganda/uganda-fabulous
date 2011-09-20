@@ -54,6 +54,9 @@ def deploy(project='all', dest='test', fix_owner=True):
                 sudo("chown -R www:www %s" % p)
                 sudo("chmod -R ug+rwx %s" % p)
 
+        proc_name = "test%s" % p if dest == 'test' else p
+        run("supervisorctl restart %s" % proc_name)
+
 
 def copy_db(project='all'):
     if project != 'all' and project not in PROJECTS \
