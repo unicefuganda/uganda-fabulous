@@ -1,7 +1,7 @@
 from fabric.api import local, abort, run, lcd, cd, settings, sudo, env
 from fabric.contrib.console import confirm
 
-PROJECTS = ['cvs', 'ureport', 'emis', 'status160']
+PROJECTS = ['mtraack', 'ureport', 'emis', 'status160']
 STANDARD_REPOS = [
    'django-eav',
    'rapidsms',
