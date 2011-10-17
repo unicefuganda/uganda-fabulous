@@ -72,20 +72,24 @@ def copy_db(project='all'):
         sudo("rm /tmp/%s.pgsql" % p, user="postgres")
 
 
-def pull_db(project='all'):
+def pull_db(project='all', delete_local=True, from_local=False):
     if project != 'all' and project not in PROJECTS \
         and not confirm("Project %s not in known projects (%s), proceed anyway?" % (project, PROJECTS)):
         abort('must specify a valid project: all or one of %s' % PROJECTS)
     projects = PROJECTS if project == 'all' else [project]
     for p in projects:
-        sudo("pg_dump %s > /tmp/%s.pgsql" % (p, p), user="postgres")
+        if not from_local == 'True':
+            sudo("pg_dump %s > /tmp/%s.pgsql" % (p, p), user="postgres")
         with settings(warn_only=True):
             local("sudo -u postgres dropdb %s" % p)
         local("sudo -u postgres createdb %s" % p)
         local("scp %s:/tmp/%s.pgsql /tmp/%s.pgsql" % (env.host_string, p, p))
         local("sudo -u postgres psql %s < /tmp/%s.pgsql" % (p, p))
-        sudo("rm /tmp/%s.pgsql" % p, user="postgres")
-        local("rm /tmp/%s.pgsql" % p)
+        if not from_local == 'True':
+            sudo("rm /tmp/%s.pgsql" % p, user="postgres")
+
+        if not delete_local == 'False':
+            local("rm /tmp/%s.pgsql" % p)
 
 
 def add_all_submodules(project, dev=False):
