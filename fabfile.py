@@ -130,6 +130,7 @@ def deploy(project='all', dest='test', fix_owner=True):
         if dest == 'prod':
             with cd(code_dir):
                 sudo("cp cron_* /etc/cron.d/")
+                sudo("service cron restart")
 
         proc_name = "test%s" % p if dest == 'test' else p
         sudo("supervisorctl restart %s" % proc_name)
