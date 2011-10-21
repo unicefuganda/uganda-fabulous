@@ -27,7 +27,9 @@ def hello():
     print ("Hello Uganda!")
 
 
-def migrate_schema(app,opts='init'):
+
+# Schemamigrations specfic
+def migrate_app_schema(app,opts='init'):
     #app-> `string` and name of app
     #default option is init
     #opts can take --auto, --add-field, etc.
@@ -38,16 +40,19 @@ def run_init_schemamigration_project_apps(app_list):
     migrate app; ./migrate <app_name> --init
     """
     for a in app_list:
-        migrate_schema(a)
+        migrate_app_schema(a)
 
 def run_auto_schemamigration_project_apps(app_list):
     """
     migrate app automatically
     """
     for a in app_list:
-        migrate_schema(a,opts='auto')
+        migrate_app_schema(a,opts='auto')
 
-        
+# Migrations specific
+def migrate_app(app):
+    run("./manage.py migrate %s"%app)
+
 def run_auto_migrate_project_apps(app_list):
     """
     migrate apps with southmigration history
@@ -59,13 +64,15 @@ def run_auto_migrate_project_apps(app_list):
         run( "./manage.py migrate %s --auto" % a )
 
 def run_migrate_project_apps(app_list):
+    """
+    Run migrate command on each migration
+    """
     for a in app_list:
-        run( "./manage.py migrate %s" % a )
-
+        migrate_app(a)
 
 
 #TODO: work on autonomous but safe migration script
-def migrate(project='all',dest='test',fix_owner=True):
+def south_automaton(project='all',dest='test',fix_owner=True):
     # we've got to get into the destination
     print "Fix owner is %s"%fix_owner
     if not dest in ['prod','test']:
@@ -88,7 +95,7 @@ def migrate(project='all',dest='test',fix_owner=True):
                 # standard repos should "typically" be what we find in the INSTALLED_APPS
                 #TODO refactor for non standard repos
                 run_migrate_project_apps(STANDARD_REPOS)
-                run
+                # TODO finish up commands with exception handling
 
 
 
