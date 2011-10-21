@@ -27,6 +27,79 @@ def hello():
     print ("Hello Uganda!")
 
 
+
+# Schemamigrations specfic
+def migrate_app_schema(app,opts='init'):
+    #app-> `string` and name of app
+    #default option is init
+    #opts can take --auto, --add-field, etc.
+    run("./manage.py schemamigration %s --%s"%(app,opts))
+
+def run_init_schemamigration_project_apps(app_list):
+    """
+    migrate app; ./migrate <app_name> --init
+    """
+    for a in app_list:
+        migrate_app_schema(a)
+
+def run_auto_schemamigration_project_apps(app_list):
+    """
+    migrate app automatically
+    """
+    for a in app_list:
+        migrate_app_schema(a,opts='auto')
+
+# Migrations specific
+def migrate_app(app):
+    run("./manage.py migrate %s"%app)
+
+def run_auto_migrate_project_apps(app_list):
+    """
+    migrate apps with southmigration history
+    This function detects app's migration state automatically and
+     applies the necessary migration.
+    """
+    for a in app_list:
+        migrate_schema(a,)
+        run( "./manage.py migrate %s --auto" % a )
+
+def run_migrate_project_apps(app_list):
+    """
+    Run migrate command on each migration
+    """
+    for a in app_list:
+        migrate_app(a)
+
+
+#TODO: work on autonomous but safe migration script
+def south_automaton(project='all',dest='test',fix_owner=True):
+    # we've got to get into the destination
+    print "Fix owner is %s"%fix_owner
+    if not dest in ['prod','test']:
+        abort("must specify a valid destination: prod or test")
+    if project!='all' and project not in PROJECTS\
+        and not confirm("Project %s not in known projects (%s),proceed anyway?"%(project,PROJECTS)):
+        abort('please specify a valid project or all or one of %s'%PROJECTS)
+    projects = PROJECTS if project == 'all' else [project]
+    for p in projects:
+        source_dir = "/var/www/%s/%s"%(dest,p)
+#        with settings(warn_only=True):
+#            if run("test -d %s"%source_dir).failed:
+#                run("python ")
+        with cd(source_dir):
+            # make manage.py executable
+            run("chmod a+x manage.py")
+            # get list of apps in project
+            apps_dir = "%s_project/"
+            with cd(apps_dir%p):
+                # standard repos should "typically" be what we find in the INSTALLED_APPS
+                #TODO refactor for non standard repos
+                run_migrate_project_apps(STANDARD_REPOS)
+                # TODO finish up commands with exception handling
+
+
+
+
 def deploy(project='all', dest='test', fix_owner=True):
     print "Fix owner is %s" % fix_owner
     if not dest in ['prod', 'test']:
@@ -94,6 +167,12 @@ def pull_db(project='all', delete_local=True, from_local=False):
 
         if not delete_local == 'False':
             local("rm /tmp/%s.pgsql" % p)
+
+
+#TODO call to backup function for db's prior to a migration; only reinstate backed up DB on failure
+def backup_db(project='all'):
+    pass
+
 
 
 def add_all_submodules(project, dev=False):
