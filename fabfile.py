@@ -33,12 +33,19 @@ def migrate_schema(app,opts='init'):
     #opts can take --auto, --add-field, etc.
     run("./manage.py schemamigration %s --%s"%(app,opts))
 
-def run_init_migrate_project_apps(app_list):
+def run_init_schemamigration_project_apps(app_list):
     """
     migrate app; ./migrate <app_name> --init
     """
     for a in app_list:
-        run( "./migrate %s --init" % a )
+        migrate_schema(a)
+
+def run_auto_schemamigration_project_apps(app_list):
+    """
+    migrate app automatically
+    """
+    for a in app_list:
+        migrate_schema(a,opts='auto')
 
         
 def run_auto_migrate_project_apps(app_list):
@@ -48,7 +55,8 @@ def run_auto_migrate_project_apps(app_list):
      applies the necessary migration.
     """
     for a in app_list:
-        run( "./migrate %s --auto" % a )
+        migrate_schema(a,)
+        run( "./manage.py migrate %s --auto" % a )
 
 def run_migrate_project_apps(app_list):
     for a in app_list:
@@ -80,11 +88,9 @@ def migrate(project='all',dest='test',fix_owner=True):
                 # standard repos should "typically" be what we find in the INSTALLED_APPS
                 #TODO refactor for non standard repos
                 run_migrate_project_apps(STANDARD_REPOS)
+                run
 
 
-#TODO call to backup function for db's prior to a migration; only reinstate backed up DB on failure
-def backup_db(project='all'):
-    pass
 
 
 def deploy(project='all', dest='test', fix_owner=True):
@@ -150,6 +156,12 @@ def pull_db(project='all', delete_local=True, from_local=False):
 
         if not delete_local == 'False':
             local("rm /tmp/%s.pgsql" % p)
+
+
+#TODO call to backup function for db's prior to a migration; only reinstate backed up DB on failure
+def backup_db(project='all'):
+    pass
+
 
 
 def add_all_submodules(project, dev=False):
