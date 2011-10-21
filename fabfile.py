@@ -28,7 +28,9 @@ def hello():
 
 #TODO: work on autonomous but safe migration script
 def migrate():
-	pass
+    pass
+
+
 
 def deploy(project='all', dest='test', fix_owner=True):
     print "Fix owner is %s" % fix_owner
