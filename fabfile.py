@@ -67,11 +67,11 @@ def migrate(project='all',dest='test',fix_owner=True):
         abort('please specify a valid project or all or one of %s'%PROJECTS)
     projects = PROJECTS if project == 'all' else [project]
     for p in projects:
-        code_dir = "/var/www/%s/%s"%(dest,p)
+        source_dir = "/var/www/%s/%s"%(dest,p)
 #        with settings(warn_only=True):
 #            if run("test -d %s"%source_dir).failed:
 #                run("python ")
-        with cd(code_dir):
+        with cd(source_dir):
             # make manage.py executable
             run("chmod a+x manage.py")
             # get list of apps in project
