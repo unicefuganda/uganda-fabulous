@@ -54,7 +54,10 @@ def migrate(project='all',dest='test',fix_owner=True):
         with cd(source_dir):
             # make manage.py executable
             run("chmod a+x manage.py")
-            run_through_project_apps()
+            # get list of apps in project
+            apps_dir = "%s_project/"
+            with cd(apps_dir%p):
+                run_through_project_apps()
 
 
 
