@@ -26,16 +26,36 @@ REPOS_WITH_SRC_NAME = [
 def hello():
     print ("Hello Uganda!")
 
-def run_migrate_project_apps(app_list):
-    for a in app_list:
-        run("./manage.py migrate %s "%a)
-        
+
 def migrate_schema(app,opts='init'):
     #app-> `string` and name of app
     #default option is init
     #opts can take --auto, --add-field, etc.
     run("./manage.py schemamigration %s --%s"%(app,opts))
+
+def run_init_migrate_project_apps(app_list):
+    """
+    migrate app; ./migrate <app_name> --init
+    """
+    for a in app_list:
+        run( "./migrate %s --init" % a )
+
         
+def run_auto_migrate_project_apps(app_list):
+    """
+    migrate apps with southmigration history
+    This function detects app's migration state automatically and
+     applies the necessary migration.
+    """
+    for a in app_list:
+        run( "./migrate %s --auto" % a )
+
+def run_migrate_project_apps(app_list):
+    for a in app_list:
+        run( "./manage.py migrate %s" % a )
+
+
+
 #TODO: work on autonomous but safe migration script
 def migrate(project='all',dest='test',fix_owner=True):
     # we've got to get into the destination
@@ -47,17 +67,19 @@ def migrate(project='all',dest='test',fix_owner=True):
         abort('please specify a valid project or all or one of %s'%PROJECTS)
     projects = PROJECTS if project == 'all' else [project]
     for p in projects:
-        source_dir = "/var/www/%s/%s"%(dest,p)
+        code_dir = "/var/www/%s/%s"%(dest,p)
 #        with settings(warn_only=True):
 #            if run("test -d %s"%source_dir).failed:
 #                run("python ")
-        with cd(source_dir):
+        with cd(code_dir):
             # make manage.py executable
             run("chmod a+x manage.py")
             # get list of apps in project
             apps_dir = "%s_project/"
             with cd(apps_dir%p):
-                run_through_project_apps()
+                # standard repos should "typically" be what we find in the INSTALLED_APPS
+                #TODO refactor for non standard repos
+                run_migrate_project_apps(STANDARD_REPOS)
 
 
 
