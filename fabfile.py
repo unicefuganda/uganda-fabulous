@@ -82,6 +82,10 @@ def migrate(project='all',dest='test',fix_owner=True):
                 run_migrate_project_apps(STANDARD_REPOS)
 
 
+#TODO call to backup function for db's prior to a migration; only reinstate backed up DB on failure
+def backup_db(project='all'):
+    pass
+
 
 def deploy(project='all', dest='test', fix_owner=True):
     print "Fix owner is %s" % fix_owner
