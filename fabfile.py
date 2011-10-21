@@ -26,9 +26,35 @@ REPOS_WITH_SRC_NAME = [
 def hello():
     print ("Hello Uganda!")
 
+def run_migrate_project_apps(app_list):
+    for a in app_list:
+        run("./manage.py migrate %s "%a)
+        
+def migrate_schema(app,opts='init'):
+    #app-> `string` and name of app
+    #default option is init
+    #opts can take --auto, --add-field, etc.
+    run("./manage.py schemamigration %s --%s"%(app,opts))
+        
 #TODO: work on autonomous but safe migration script
-def migrate():
-    pass
+def migrate(project='all',dest='test',fix_owner=True):
+    # we've got to get into the destination
+    print "Fix owner is %s"%fix_owner
+    if not dest in ['prod','test']:
+        abort("must specify a valid destination: prod or test")
+    if project!='all' and project not in PROJECTS\
+        and not confirm("Project %s not in known projects (%s),proceed anyway?"%(project,PROJECTS)):
+        abort('please specify a valid project or all or one of %s'%PROJECTS)
+    projects = PROJECTS if project == 'all' else [project]
+    for p in projects:
+        source_dir = "/var/www/%s/%s"%(dest,p)
+#        with settings(warn_only=True):
+#            if run("test -d %s"%source_dir).failed:
+#                run("python ")
+        with cd(source_dir):
+            # make manage.py executable
+            run("chmod a+x manage.py")
+            run_through_project_apps()
 
 
 
