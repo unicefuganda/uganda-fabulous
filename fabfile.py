@@ -54,6 +54,10 @@ def deploy(project='all', dest='test', fix_owner=True):
                 sudo("chown -R www:www %s" % p)
                 sudo("chmod -R ug+rwx %s" % p)
 
+        if dest == 'prod':
+            with cd(code_dir):
+                sudo("cp cron_* /etc/cron.d/")
+
         proc_name = "test%s" % p if dest == 'test' else p
         sudo("supervisorctl restart %s" % proc_name)
 
