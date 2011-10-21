@@ -26,6 +26,9 @@ REPOS_WITH_SRC_NAME = [
 def hello():
     print ("Hello Uganda!")
 
+#TODO: work on autonomous but safe migration script
+def migrate():
+	pass
 
 def deploy(project='all', dest='test', fix_owner=True):
     print "Fix owner is %s" % fix_owner
