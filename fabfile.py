@@ -72,7 +72,7 @@ def run_migrate_project_apps(app_list):
 
 
 
-def deploy(project='all', dest='test', fix_owner=True):
+def deploy(project='all', dest='test', fix_owner=True,syncdb=False,south=False,south_initial=False):
     print "Fix owner is %s" % fix_owner
     if not dest in ['prod', 'test']:
         abort('must specify a valid dest: prod or test')
@@ -95,7 +95,13 @@ def deploy(project='all', dest='test', fix_owner=True):
             run("git submodule update")
             run("git submodule foreach git config core.filemode false")
             with cd("%s_project"%p):
-                run("./manage.py migrate")
+		if syncdb:
+		    run("/var/www/env/%s/bin/python manage.py syncdb"%dest)
+		if south:
+		    run("/var/www/env/%s/bin/python manage.py syncdb"%dest)
+		    if south_initial:
+		        run("/var/www/env/%s/bin/python manage.py migrate --fake"%dest)
+                    run("/var/www/env/%s/bin/python manage.py migrate"%dest)
             
         if not fix_owner == 'False':
             with cd("%s../" % code_dir):
