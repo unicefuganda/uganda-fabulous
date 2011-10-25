@@ -72,7 +72,7 @@ def run_migrate_project_apps(app_list):
 
 
 
-def deploy(project='all', dest='test', fix_owner=True,syncdb=False,south=False,south_initial=False):
+def deploy(project='all', dest='test', fix_owner='True',syncdb='False',south='False',south_initial='False'):
     print "Fix owner is %s" % fix_owner
     if not dest in ['prod', 'test']:
         abort('must specify a valid dest: prod or test')
@@ -95,14 +95,14 @@ def deploy(project='all', dest='test', fix_owner=True,syncdb=False,south=False,s
             run("git submodule update")
             run("git submodule foreach git config core.filemode false")
             with cd("%s_project"%p):
-		if syncdb:
-		    run("/var/www/env/%s/bin/python manage.py syncdb"%dest)
-		if south:
-		    run("/var/www/env/%s/bin/python manage.py syncdb"%dest)
-		    if south_initial:
-		        run("/var/www/env/%s/bin/python manage.py migrate --fake"%dest)
+                if syncdb == 'True':
+                    run("/var/www/env/%s/bin/python manage.py syncdb"%dest)
+                if south == 'True':
+                    run("/var/www/env/%s/bin/python manage.py syncdb"%dest)
+                if south_initial == 'True':
+                    run("/var/www/env/%s/bin/python manage.py migrate --fake"%dest)
                     run("/var/www/env/%s/bin/python manage.py migrate"%dest)
-            
+
         if not fix_owner == 'False':
             with cd("%s../" % code_dir):
                 sudo("chown -R www:www %s" % p)
