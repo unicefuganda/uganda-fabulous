@@ -71,34 +71,6 @@ def run_migrate_project_apps(app_list):
         migrate_app(a)
 
 
-#TODO: work on autonomous but safe migration script
-def south_automaton(project='all',dest='test',fix_owner=True):
-    # we've got to get into the destination
-    print "Fix owner is %s"%fix_owner
-    if not dest in ['prod','test']:
-        abort("must specify a valid destination: prod or test")
-    if project!='all' and project not in PROJECTS\
-        and not confirm("Project %s not in known projects (%s),proceed anyway?"%(project,PROJECTS)):
-        abort('please specify a valid project or all or one of %s'%PROJECTS)
-    projects = PROJECTS if project == 'all' else [project]
-    for p in projects:
-        source_dir = "/var/www/%s/%s"%(dest,p)
-#        with settings(warn_only=True):
-#            if run("test -d %s"%source_dir).failed:
-#                run("python ")
-        with cd(source_dir):
-            # make manage.py executable
-            run("chmod a+x manage.py")
-            # get list of apps in project
-            apps_dir = "%s_project/"
-            with cd(apps_dir%p):
-                # standard repos should "typically" be what we find in the INSTALLED_APPS
-                #TODO refactor for non standard repos
-                run_migrate_project_apps(STANDARD_REPOS)
-                # TODO finish up commands with exception handling
-
-
-
 
 def deploy(project='all', dest='test', fix_owner=True):
     print "Fix owner is %s" % fix_owner
@@ -109,6 +81,7 @@ def deploy(project='all', dest='test', fix_owner=True):
         abort('must specify a valid project: all or one of %s' % PROJECTS)
     projects = PROJECTS if project == 'all' else [project]
     for p in projects:
+        #/var/www/test/upreport
         code_dir = "/var/www/%s/%s/" % (dest, p)
         with settings(warn_only=True):
             if run("test -d %s" % code_dir).failed:
@@ -121,7 +94,9 @@ def deploy(project='all', dest='test', fix_owner=True):
             run("git submodule sync")
             run("git submodule update")
             run("git submodule foreach git config core.filemode false")
-
+            with cd("%s_project"%p):
+                run("./manage.py migrate")
+            
         if not fix_owner == 'False':
             with cd("%s../" % code_dir):
                 sudo("chown -R www:www %s" % p)
@@ -168,7 +143,6 @@ def pull_db(project='all', delete_local=True, from_local=False):
 
         if not delete_local == 'False':
             local("rm /tmp/%s.pgsql" % p)
-
 
 #TODO call to backup function for db's prior to a migration; only reinstate backed up DB on failure
 def backup_db(project='all'):
