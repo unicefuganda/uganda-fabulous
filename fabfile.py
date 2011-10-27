@@ -23,10 +23,6 @@ REPOS_WITH_SRC_NAME = [
     'rapidsms-xforms'
 ]
 
-def hello():
-    print ("Hello Uganda!")
-
-
 
 # Schemamigrations specfic
 def migrate_app_schema(app, opts='init'):
@@ -72,7 +68,7 @@ def run_migrate_project_apps(app_list):
 
 
 
-def deploy(project='all', dest='test', fix_owner='True', syncdb='False', south='False', south_initial='False'):
+def deploy(project='all', dest='test', fix_owner='True', syncdb='False', south='False', south_initial='False', init_data='False'):
     print "Fix owner is %s" % fix_owner
     if not dest in ['prod', 'test']:
         abort('must specify a valid dest: prod or test')
@@ -99,6 +95,10 @@ def deploy(project='all', dest='test', fix_owner='True', syncdb='False', south='
                     run("/var/www/env/%s/bin/python manage.py syncdb" % dest)
                 if south == 'True':
                     run("/var/www/env/%s/bin/python manage.py syncdb" % dest)
+                if init_data == 'True':
+                   # in mtrack, this loads initial data
+                   # which doesn't specifically mean fixtures (which are loaded during syncdb and  migrations)
+                   run("/var/www/env/%s/bin/python manage.py %s_init" % (dest, p))
                 if south_initial == 'True':
                     run("/var/www/env/%s/bin/python manage.py migrate --fake" % dest)
                     run("/var/www/env/%s/bin/python manage.py migrate" % dest)
