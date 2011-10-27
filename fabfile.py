@@ -29,11 +29,11 @@ def hello():
 
 
 # Schemamigrations specfic
-def migrate_app_schema(app,opts='init'):
+def migrate_app_schema(app, opts='init'):
     #app-> `string` and name of app
     #default option is init
     #opts can take --auto, --add-field, etc.
-    run("./manage.py schemamigration %s --%s"%(app,opts))
+    run("./manage.py schemamigration %s --%s" % (app, opts))
 
 def run_init_schemamigration_project_apps(app_list):
     """
@@ -47,11 +47,11 @@ def run_auto_schemamigration_project_apps(app_list):
     migrate app automatically
     """
     for a in app_list:
-        migrate_app_schema(a,opts='auto')
+        migrate_app_schema(a, opts='auto')
 
 # Migrations specific
 def migrate_app(app):
-    run("./manage.py migrate %s"%app)
+    run("./manage.py migrate %s" % app)
 
 def run_auto_migrate_project_apps(app_list):
     """
@@ -61,7 +61,7 @@ def run_auto_migrate_project_apps(app_list):
     """
     for a in app_list:
         migrate_schema(a,)
-        run( "./manage.py migrate %s --auto" % a )
+        run("./manage.py migrate %s --auto" % a)
 
 def run_migrate_project_apps(app_list):
     """
@@ -72,7 +72,7 @@ def run_migrate_project_apps(app_list):
 
 
 
-def deploy(project='all', dest='test', fix_owner='True',syncdb='False',south='False',south_initial='False'):
+def deploy(project='all', dest='test', fix_owner='True', syncdb='False', south='False', south_initial='False'):
     print "Fix owner is %s" % fix_owner
     if not dest in ['prod', 'test']:
         abort('must specify a valid dest: prod or test')
@@ -94,14 +94,14 @@ def deploy(project='all', dest='test', fix_owner='True',syncdb='False',south='Fa
             run("git submodule sync")
             run("git submodule update")
             run("git submodule foreach git config core.filemode false")
-            with cd("%s_project"%p):
+            with cd("%s_project" % p):
                 if syncdb == 'True':
-                    run("/var/www/env/%s/bin/python manage.py syncdb"%dest)
+                    run("/var/www/env/%s/bin/python manage.py syncdb" % dest)
                 if south == 'True':
-                    run("/var/www/env/%s/bin/python manage.py syncdb"%dest)
+                    run("/var/www/env/%s/bin/python manage.py syncdb" % dest)
                 if south_initial == 'True':
-                    run("/var/www/env/%s/bin/python manage.py migrate --fake"%dest)
-                    run("/var/www/env/%s/bin/python manage.py migrate"%dest)
+                    run("/var/www/env/%s/bin/python manage.py migrate --fake" % dest)
+                    run("/var/www/env/%s/bin/python manage.py migrate" % dest)
 
         if not fix_owner == 'False':
             with cd("%s../" % code_dir):
@@ -140,16 +140,15 @@ def pull_db(project='all', delete_local=True, from_local=False):
     for p in projects:
         if not from_local == 'True':
             sudo("pg_dump %s > /tmp/%s.pgsql" % (p, p), user="postgres")
+            local("scp %s:/tmp/%s.pgsql /tmp/%s.pgsql" % (env.host_string, p, p))
+            sudo("rm /tmp/%s.pgsql" % p, user="postgres")
         with settings(warn_only=True):
             local("sudo -u postgres dropdb %s" % p)
         local("sudo -u postgres createdb %s" % p)
-        local("scp %s:/tmp/%s.pgsql /tmp/%s.pgsql" % (env.host_string, p, p))
         local("sudo -u postgres psql %s < /tmp/%s.pgsql" % (p, p))
-        if not from_local == 'True':
-            sudo("rm /tmp/%s.pgsql" % p, user="postgres")
-
         if not delete_local == 'False':
             local("rm /tmp/%s.pgsql" % p)
+
 
 #TODO call to backup function for db's prior to a migration; only reinstate backed up DB on failure
 def backup_db(project='all'):
