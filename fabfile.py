@@ -68,7 +68,7 @@ def run_migrate_project_apps(app_list):
 
 
 
-def deploy(project='all', dest='test', fix_owner='True', syncdb='False', south='False', south_initial='False', init_data='False'):
+def deploy(project='all', dest='test', fix_owner='True', syncdb='False', south='False', south_initial='False', init_data='False',hash='False'):
     print "Fix owner is %s" % fix_owner
     if not dest in ['prod', 'test']:
         abort('must specify a valid dest: prod or test')
@@ -86,7 +86,10 @@ def deploy(project='all', dest='test', fix_owner='True', syncdb='False', south='
                     run("git submodule init")
                     run("git config core.filemode false")
         with cd(code_dir):
-            run("git pull origin master")
+            if hash == 'False':
+            	run("git pull origin master")
+	    else:
+                run("git checkout %s"%hash)
             run("git submodule sync")
             run("git submodule update")
             run("git submodule foreach git config core.filemode false")
