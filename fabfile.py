@@ -66,19 +66,15 @@ def deploy(project='all', dest='test', fix_owner='True', syncdb='False', south='
                 sudo("chown -R www:www %s" % p)
                 sudo("chmod -R ug+rwx %s" % p)
 
-
         if dest == 'prod':
             with cd(code_dir):
                 with settings(warn_only=True):
                     sudo("cp cron_* /etc/cron.d/")
-
                 sudo("service cron restart")
 
         proc_name = "test%s" % p if dest == 'test' else p
-
 	    #restart nginx
 		sudo("service nginx restart")
-		
         sudo("supervisorctl restart %s" % proc_name)
 
 
