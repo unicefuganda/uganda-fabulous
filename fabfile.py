@@ -72,7 +72,7 @@ def deploy(project='all', dest='test', fix_owner='True', syncdb='False', south='
                     sudo("cp cron_* /etc/cron.d/")
                 sudo("service cron restart")
 
-        proc_name = "test%s_uwsgi" % p if dest == 'test' else p
+        proc_name = "test%s_uwsgi" % p if dest == 'test' else '%s_uwsgi' % p
 	#restart nginx
 	#sudo("service nginx restart") #we don't need to restart nginx, only the uwsgi process corresponding to proc_name
         sudo("supervisorctl restart %s" % proc_name)
