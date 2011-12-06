@@ -114,7 +114,7 @@ def deploy(project='all', dest='test', fix_owner='True', syncdb='False', south='
                     sudo("cp cron_* /etc/cron.d/")
                 sudo("service cron restart")
 
-        proc_name = "test%s" % p if dest == 'test' else p
+        proc_name = "test%s_uwsgi" % p if dest == 'test' else p
         sudo("supervisorctl restart %s" % proc_name)
 
 
