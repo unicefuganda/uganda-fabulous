@@ -45,6 +45,7 @@ def deploy(project='all', dest='test', fix_owner='True', syncdb='False', south='
             	run("git pull origin master")
 	    else:
                 run("git checkout %s"%hash)
+		run("git submodule init")
             run("git submodule sync")
             run("git submodule update")
             run("git submodule foreach git config core.filemode false")
