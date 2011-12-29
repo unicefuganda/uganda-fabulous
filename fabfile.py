@@ -38,13 +38,13 @@ def deploy(project='all', dest='test', fix_owner='True', syncdb='False', south='
             if run("test -d %s" % code_dir).failed:
                 run("git clone git://github.com/unicefuganda/%s %s" % (p, code_dir))
                 with cd(code_dir):
-                    run("git submodule init")
                     run("git config core.filemode false")
         with cd(code_dir):
             if hash == 'False':
             	run("git pull origin master")
 	    else:
                 run("git checkout %s"%hash)
+            run("git submodule init")
             run("git submodule sync")
             run("git submodule update")
             run("git submodule foreach git config core.filemode false")
@@ -70,7 +70,6 @@ def deploy(project='all', dest='test', fix_owner='True', syncdb='False', south='
             with cd(code_dir):
                 with settings(warn_only=True):
                     sudo("cp cron_* /etc/cron.d/")
-                sudo("service cron restart")
 
         proc_name = "test%s_uwsgi" % p if dest == 'test' else '%s_uwsgi' % p
 	#restart nginx
