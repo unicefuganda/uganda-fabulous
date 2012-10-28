@@ -94,7 +94,8 @@ def copy_db(project='all'):
         sudo("rm /tmp/%s.pgsql" % p, user="postgres")
 
 
-def pull_db(project='all', delete_local=True, from_local=False, local_pgdump='False', pg_port='5432'):
+def pull_db(project='all', delete_local=True, from_local=False, local_pgdump='False', pg_port='5432', local_sudo='True'):
+    sudo_cmd = 'sudo -u postgres' if local_sudo == 'True' else ''
     if project != 'all' and project not in PROJECTS \
         and not confirm("Project %s not in known projects (%s), proceed anyway?" % (project, PROJECTS)):
         abort('must specify a valid project: all or one of %s' % PROJECTS)
@@ -108,9 +109,9 @@ def pull_db(project='all', delete_local=True, from_local=False, local_pgdump='Fa
                 local("scp %s:/tmp/%s.pgsql /tmp/%s.pgsql" % (env.host_string, p, p))
                 sudo("rm /tmp/%s.pgsql" % p, user="postgres")
         with settings(warn_only=True):
-            local("sudo -u postgres dropdb %s" % p)
-        local("sudo -u postgres createdb %s" % p)
-        local("sudo -u postgres psql %s < /tmp/%s.pgsql" % (p, p))
+            local("%s dropdb %s" % (sudo_cmd, p))
+        local("%s createdb %s" % (sudo_cmd, p))
+        local("%s psql %s < /tmp/%s.pgsql" % (sudo_cmd, p, p))
         if not delete_local == 'False':
             local("rm /tmp/%s.pgsql" % p)
 
