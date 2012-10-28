@@ -53,6 +53,8 @@ def deploy(project='all', dest='test', fix_owner='True', syncdb='False', south='
                     run("/var/www/env/%s/bin/python manage.py syncdb" % dest)
                 if south == 'True':
                     run("/var/www/env/%s/bin/python manage.py migrate" % dest)
+                else:
+                    run("/var/www/env/%s/bin/python manage.py migrate --list | awk '$0 !~ /\*/ && $0 !~ /^$/' " % dest)
                 if init_data == 'True':
                    # in mtrack, this loads initial data
                    # which doesn't specifically mean fixtures (which are loaded during syncdb and  migrations)
