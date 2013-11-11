@@ -1,21 +1,22 @@
 from fabric.api import local, abort, run, lcd, cd, settings, sudo, env
 from fabric.contrib.console import confirm
+import re
 
 PROJECTS = ['mtrack', 'ureport', 'emis', 'edtrac', 'status160']
 STANDARD_REPOS = [
-   'django-eav',
-   'rapidsms',
-   'rapidsms-auth',
-   'rapidsms-contact',
-   'rapidsms-generic',
-   'rapidsms-healthmodels',
-   'rapidsms-httprouter',
-   'rapidsms-polls',
-   'rapidsms-script',
-   'rapidsms-uganda-common',
-   'rapidsms-unregister',
-   'rapidsms-ureport',
-   'rapidsms-xforms',
+    'django-eav',
+    'rapidsms',
+    'rapidsms-auth',
+    'rapidsms-contact',
+    'rapidsms-generic',
+    'rapidsms-healthmodels',
+    'rapidsms-httprouter',
+    'rapidsms-polls',
+    'rapidsms-script',
+    'rapidsms-uganda-common',
+    'rapidsms-unregister',
+    'rapidsms-ureport',
+    'rapidsms-xforms',
 ]
 
 REPOS_WITH_SRC_NAME = [
@@ -23,17 +24,20 @@ REPOS_WITH_SRC_NAME = [
     'rapidsms-xforms'
 ]
 
-def deploy(project='all', dest='test', fix_owner='True', syncdb='False', south='False', south_initial='False', init_data='False',hash='False', base_git_user='unicefuganda'):
+
+def deploy(project='all', dest='test', fix_owner='True', syncdb='False', south='False', south_initial='False', init_data='False', hash='False', base_git_user='unicefuganda'):
     print "Fix owner is %s" % fix_owner
     if not dest in ['prod', 'test']:
         abort('must specify a valid dest: prod or test')
     if project != 'all' and project not in PROJECTS \
-        and not confirm("Project %s not in known projects (%s), proceed anyway?" % (project, PROJECTS)):
+       and not confirm("Project %s not in known projects (%s), proceed anyway?" % (project, PROJECTS)):
         abort('must specify a valid project: all or one of %s' % PROJECTS)
     projects = PROJECTS if project == 'all' else [project]
     for p in projects:
         #/var/www/test/upreport
         code_dir = "/var/www/%s/%s/" % (dest, p)
+        proc_name = "test%s_uwsgi" % p if dest == 'test' else '%s_uwsgi' % p
+        dest = "%s_%s" % (dest, project)
         with settings(warn_only=True):
             if run("test -d %s" % code_dir).failed:
                 run("git clone git://github.com/%s/%s %s" % (base_git_user, p, code_dir))
@@ -41,9 +45,10 @@ def deploy(project='all', dest='test', fix_owner='True', syncdb='False', south='
                     run("git config core.filemode false")
         with cd(code_dir):
             if hash == 'False':
-            	run("git pull origin master")
-	    else:
-                run("git checkout %s"%hash)
+                run("git pull origin master")
+            else:
+                run("git fetch")
+                run("git checkout %s" % hash)
             run("git submodule init")
             run("git submodule sync")
             run("git submodule update")
@@ -57,24 +62,23 @@ def deploy(project='all', dest='test', fix_owner='True', syncdb='False', south='
                     if confirm('Check for pending migrations?', default=True):
                         run("/var/www/env/%s/bin/python manage.py migrate --list | awk '$0 !~ /\*/ && $0 !~ /^$/' " % dest)
                 if init_data == 'True':
-                   # in mtrack, this loads initial data
-                   # which doesn't specifically mean fixtures (which are loaded during syncdb and  migrations)
-                   run("/var/www/env/%s/bin/python manage.py %s_init" % (dest, p))
+                    # in mtrack, this loads initial data
+                    # which doesn't specifically mean fixtures (which are loaded during syncdb and  migrations)
+                    run("/var/www/env/%s/bin/python manage.py %s_init" % (dest, p))
                 if south_initial == 'True':
                     run("/var/www/env/%s/bin/python manage.py migrate --fake" % dest)
                     run("/var/www/env/%s/bin/python manage.py migrate" % dest)
 
         if not fix_owner == 'False':
             with cd("%s../" % code_dir):
-                sudo("chown -R www:www %s" % p)
+                sudo("chown -R www-data:www-data %s" % p)
                 sudo("chmod -R ug+rwx %s" % p)
 
-        if dest == 'prod':
+        if re.match('prod', dest):
             with cd(code_dir):
                 with settings(warn_only=True):
                     sudo("cp cron_* /etc/cron.d/")
 
-        proc_name = "test%s_uwsgi" % p if dest == 'test' else '%s_uwsgi' % p
 	#restart nginx
 	#sudo("service nginx restart") #we don't need to restart nginx, only the uwsgi process corresponding to proc_name
         sudo("supervisorctl restart %s" % proc_name)
