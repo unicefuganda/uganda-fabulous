@@ -35,9 +35,9 @@ def deploy(project='all', dest='test', fix_owner='True', syncdb='False', south='
     projects = PROJECTS if project == 'all' else [project]
     for p in projects:
         #/var/www/test/upreport
-        code_dir = "/var/www/%s/%s/" % (dest, p)
         proc_name = "test%s_uwsgi" % p if dest == 'test' else '%s_uwsgi' % p
         dest = "%s_%s" % (dest, project)
+        code_dir = "/var/www/%s/%s/" % (dest, p)
         with settings(warn_only=True):
             if run("test -d %s" % code_dir).failed:
                 run("git clone git://github.com/%s/%s %s" % (base_git_user, p, code_dir))
