@@ -25,8 +25,12 @@ REPOS_WITH_SRC_NAME = [
 ]
 
 
-def deploy(project='all', dest='test', fix_owner='True', syncdb='False', south='False', south_initial='False', init_data='False', hash='False', base_git_user='unicefuganda'):
+def deploy(project='all', dest='test', fix_owner='True', syncdb='False', south='False', south_initial='False', init_data='False', hash='False', base_git_user='unicefuganda', settings_module=None):
     print "Fix owner is %s" % fix_owner
+    settings_option = ""
+    if settings_module:
+        settings_option = "--settings %s" % settings_module
+        print "Settings is: %s" % settings_option
     if not dest in ['prod', 'test']:
         abort('must specify a valid dest: prod or test')
     if project != 'all' and project not in PROJECTS \
@@ -55,12 +59,12 @@ def deploy(project='all', dest='test', fix_owner='True', syncdb='False', south='
             run("git submodule foreach git config core.filemode false")
             with cd("%s_project" % p):
                 if syncdb == 'True':
-                    run("/var/www/env/%s/bin/python manage.py syncdb" % dest)
+                    run("/var/www/env/%s/bin/python manage.py syncdb %s %s" % (dest, settings_option))
                 if south == 'True':
-                    run("/var/www/env/%s/bin/python manage.py migrate" % dest)
+                    run("/var/www/env/%s/bin/python manage.py migrate %s %s" % (dest, settings_option))
                 else:
                     if confirm('Check for pending migrations?', default=True):
-                        run("/var/www/env/%s/bin/python manage.py migrate --list | awk '$0 !~ /\*/ && $0 !~ /^$/' " % dest)
+                        run("/var/www/env/%s/bin/python manage.py migrate --list %s | awk '$0 !~ /\*/ && $0 !~ /^$/' " % (dest, settings_option))
                 if init_data == 'True':
                     # in mtrack, this loads initial data
                     # which doesn't specifically mean fixtures (which are loaded during syncdb and  migrations)
