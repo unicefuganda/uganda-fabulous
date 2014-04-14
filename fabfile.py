@@ -25,7 +25,7 @@ REPOS_WITH_SRC_NAME = [
 ]
 
 
-def deploy(project='all', dest='test', fix_owner='True', syncdb='False', south='False', south_initial='False', init_data='False', hash='False', base_git_user='unicefuganda', settings_module=None):
+def deploy(project='all', dest='test', user='www', folder_structure='new', fix_owner='True', syncdb='False', south='False', south_initial='False', init_data='False', hash='False', base_git_user='unicefuganda', settings_module=None):
     print "Fix owner is %s" % fix_owner
     settings_option = ""
     if settings_module:
@@ -40,7 +40,7 @@ def deploy(project='all', dest='test', fix_owner='True', syncdb='False', south='
     for p in projects:
         #/var/www/test/upreport
         proc_name = "test%s_uwsgi" % p if dest == 'test' else '%s_uwsgi' % p
-        dest = "%s_%s" % (dest, project)
+        dest = "%s_%s" % (dest, project) if folder_structure == 'new' else dest
         code_dir = "/var/www/%s/%s/" % (dest, p)
         with settings(warn_only=True):
             if run("test -d %s" % code_dir).failed:
@@ -75,7 +75,7 @@ def deploy(project='all', dest='test', fix_owner='True', syncdb='False', south='
 
         if not fix_owner == 'False':
             with cd("%s../" % code_dir):
-                sudo("chown -R www-data:www-data %s" % p)
+                sudo("chown -R %s:%s %s" % (user, user, p))
                 sudo("chmod -R ug+rwx %s" % p)
 
         if re.match('prod', dest):
