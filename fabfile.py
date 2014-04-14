@@ -25,7 +25,7 @@ REPOS_WITH_SRC_NAME = [
 ]
 
 
-def deploy(project='all', dest='test', user='www', folder_structure='new', fix_owner='True', syncdb='False', south='False', south_initial='False', init_data='False', hash='False', base_git_user='unicefuganda', settings_module=None):
+def deploy(project='all', dest='test', user='www-data', folder_structure='new', fix_owner='True', syncdb='False', south='False', south_initial='False', init_data='False', hash='False', base_git_user='unicefuganda', settings_module=None):
     print "Fix owner is %s" % fix_owner
     settings_option = ""
     if settings_module:
